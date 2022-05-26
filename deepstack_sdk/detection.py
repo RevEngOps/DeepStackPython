@@ -19,10 +19,11 @@ class Detection(object):
             self.__endpoint = "v1/vision/custom/{}".format(name)
 
 
-    def __process_image(self,image_data: bytes, min_confidence: float):
+    def __process_image(self,image_data: bytes, min_confidence: float, timeout=60):
         response = requests.post(self.config.server_url+self.__endpoint,
         files={"image": image_data},
-        data={"api_key": self.config.api_key,"min_confidence":min_confidence}
+        data={"api_key": self.config.api_key,"min_confidence":min_confidence},
+        timeout=timeout
         )
 
         return response
@@ -32,7 +33,8 @@ class Detection(object):
                     callback=None, output_font=cv2.FONT_HERSHEY_SIMPLEX,output_font_color=(0,146,224),
                     draw_bounding_box=True,
                     show_label=True,
-                    show_conf=True):
+                    show_conf=True,
+                    timeout=60):
         if isinstance(image,str):
             if os.path.isfile(image):
                 image_data = open(image,"rb").read()
@@ -49,7 +51,7 @@ class Detection(object):
         else:
             raise Exception("Unsupported input type: {}".format(type(image)))
 
-        response = self.__process_image(image_data, min_confidence)
+        response = self.__process_image(image_data, min_confidence, timeout)
 
         if response.status_code == 200:
             data = DetectionResponse(response.json())
